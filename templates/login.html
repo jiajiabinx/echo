@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Signup - IChing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .auth-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            margin-top: 50px;
+        }
+
+        .auth-box {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #444;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .signup-fields {
+            display: none;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .toggle-form:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: none;  /* Hide by default */
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+
+        .loading.active {
+            display: block;  /* Show only when active class is added */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to IChing</h1>
+        
+        <div class="auth-container">
+            <!-- Login Form -->
+            <div class="auth-box" id="loginBox">
+                <h2>Login</h2>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginUserId">User ID</label>
+                        <input type="text" id="loginUserId" name="userId" required>
+                    </div>
+                    <button type="submit">Login</button>
+                    <div class="error-message" id="loginError"></div>
+                </form>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="auth-box" id="signupBox">
+                <h2>Sign Up</h2>
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="displayName">Display Name*</label>
+                        <input type="text" id="displayName" name="display_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="birthDate">Birth Date*</label>
+                        <input type="date" id="birthDate" name="birth_date" 
+                               max="{{ today_date }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="birthLocation">Birth Location*</label>
+                        <input type="text" id="birthLocation" name="birth_location" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="primaryResidence">Primary Residence*</label>
+                        <input type="text" id="primaryResidence" name="primary_residence" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="currentLocation">Current Location*</label>
+                        <input type="text" id="currentLocation" name="current_location" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="college">College*</label>
+                        <input type="text" id="college" name="college" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="educationalLevel">Educational Level*</label>
+                        <select id="educationalLevel" name="educational_level" required>
+                            <option value="">Select Education Level</option>
+                            <option value="High School">High School</option>
+                            <option value="Bachelor">Bachelor's Degree</option>
+                            <option value="Master">Master's Degree</option>
+                            <option value="PhD">PhD</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="parentalIncome">Parental Income (USD) *</label>
+                        <input type="number" id="parentalIncome" name="parental_income" 
+                               min="0" step="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="primaryInterest">Primary Interest*</label>
+                        <input type="text" id="primaryInterest" name="primary_interest" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profession">Profession*</label>
+                        <input type="text" id="profession" name="profession" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="religion">Religion*</label>
+                        <input type="text" id="religion" name="religion" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="race">Race*</label>
+                        <select id="race" name="race" required>
+                            <option value="">Select Race/Ethnicity</option>
+                            <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+                            <option value="Asian">Asian</option>
+                            <option value="Black or African American">Black or African American</option>
+                            <option value="Hispanic or Latino">Hispanic or Latino</option>
+                            <option value="Middle Eastern or North African">Middle Eastern or North African</option>
+                            <option value="Native Hawaiian or Pacific Islander">Native Hawaiian or Pacific Islander</option>
+                            <option value="White">White</option>
+                        </select>
+                    </div>
+                    <button type="submit">Sign Up</button>
+                    <div class="error-message" id="signupError"></div>
+                </form>
+                <div class="loading" id="signupLoading">Creating your account...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            const userId = document.getElementById('loginUserId').value;
+            const errorElement = document.getElementById('loginError');
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_id: parseInt(userId) })
+                });
+
+                
+                if (response.ok) {
+                    const data = await response.json();  // Parse the JSON response
+                console.log('Login response data:', data);  // Debug log
+
+                    if (data.redirect_url) {
+                        console.log('Redirecting to:', data.redirect_url);  // Debug log
+                        window.location.href = data.redirect_url;  // Redirect to the URL
+                    } else {
+                        errorElement.textContent = 'No redirect URL provided';  // Handle missing redirect URL
+                    }
+                } else {
+                    const error = await response.json();  // Parse error response
+                    errorElement.textContent = error.detail || 'Login failed';  // Display error message
+                }
+            } catch (error) {
+                console.error('Login error:', error);  // Log any errors
+                errorElement.textContent = 'An error occurred. Please try again.';  // Display generic error message
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            const loadingIndicator = document.getElementById('signupLoading');
+            const errorElement = document.getElementById('signupError');
+            
+            // Clear any previous error
+            errorElement.textContent = '';
+            
+            // Show loading indicator
+            loadingIndicator.classList.add('active');
+            
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Convert parental_income to integer
+            data.parental_income = parseInt(data.parental_income);
+            
+            // Validate birth date
+            const birthDate = new Date(data.birth_date);
+            const today = new Date();
+            if (birthDate > today) {
+                errorElement.textContent = 'Birth date cannot be in the future';
+                loadingIndicator.classList.remove('active');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`Successfully signed up! Your user ID is: ${result.user_id}`);
+                    window.location.href = `/dashboard/${result.user_id}`;
+                } else {
+                    const error = await response.json();
+                    errorElement.textContent = error.detail || 'Signup failed. Please try again.';
+                }
+            } catch (error) {
+                errorElement.textContent = 'An error occurred. Please try again.';
+            } finally {
+                // Hide loading indicator when done
+                loadingIndicator.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Registration</h1>
+    <form id="userForm">
+        <div class="form-group">
+            <label for="birth_date">Display Name:</label>
+            <input type="date" id="display_name" name="display_name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="birth_date">Birth Date:</label>
+            <input type="date" id="birth_date" name="birth_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="birth_location">Birth Location:</label>
+            <input type="text" id="birth_location" name="birth_location" required>
+        </div>
+
+        <div class="form-group">
+            <label for="primary_residence">Primary Residence:</label>
+            <input type="text" id="primary_residence" name="primary_residence" required>
+        </div>
+
+        <div class="form-group">
+            <label for="current_location">Current Location:</label>
+            <input type="text" id="current_location" name="current_location" required>
+        </div>
+
+        <div class="form-group">
+            <label for="college">College:</label>
+            <input type="text" id="college" name="college" required>
+        </div>
+
+        <div class="form-group">
+            <label for="educational_level">Educational Level:</label>
+            <input type="text" id="educational_level" name="educational_level" required>
+        </div>
+
+        <div class="form-group">
+            <label for="parental_income">Parental Income:</label>
+            <input type="number" id="parental_income" name="parental_income" required>
+        </div>
+
+        <div class="form-group">
+            <label for="primary_interest">Primary Interest:</label>
+            <input type="text" id="primary_interest" name="primary_interest" required>
+        </div>
+
+        <div class="form-group">
+            <label for="profession">Profession:</label>
+            <input type="text" id="profession" name="profession" required>
+        </div>
+
+        <div class="form-group">
+            <label for="religion">Religion:</label>
+            <input type="text" id="religion" name="religion" required>
+        </div>
+
+        <div class="form-group">
+            <label for="race">Race:</label>
+            <select id="race" name="race" required>
+                <option value="">Select race</option>
+                <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+                <option value="Asian">Asian</option>
+                <option value="Black or African American">Black or African American</option>
+                <option value="Hispanic or Latino">Hispanic or Latino</option>
+                <option value="Middle Eastern or North African">Middle Eastern or North African</option>
+                <option value="Native Hawaiian or Pacific Islander">Native Hawaiian or Pacific Islander</option>
+                <option value="White">White</option>
+            </select>
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script src="script.js"></script>
+</body>
+</html> 

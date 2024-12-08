@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generating Your Story</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+        }
+        .loading-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .loading-text {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80% { content: '...'; }
+            100% { content: ''; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="loading-container">
+            <div class="loading-title">Generating Your Story</div>
+            <div class="loading-text">
+                Consulting the I Ching and crafting your unique narrative<span class="loading-dots"></span>
+            </div>
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = '{{ base_url }}';
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
+        const userId = urlParams.get('user_id');
+        const sessionId = urlParams.get('session_id');
+
+        const API_ENDPOINTS = {
+            qigua: `/api/story/yunsuan`,
+            duangua: `/api/story/tuisuan`,
+            story: `/api/story`,
+            display_story: `/story`,
+            dashboard: `/dashboard`,
+        };
+        if (!orderId || !userId || !sessionId) {
+            alert('No payment token found');
+            window.location.href = `${API_ENDPOINTS.dashboard}/${userId}`;
+        }
+        async function generateStory() {
+            try {
+                // First API call - qigua
+                const qiguaResponse = await fetch(`${API_ENDPOINTS.qigua}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        user_id: userId,
+                        session_id: sessionId
+                    })
+                });
+
+                if (!qiguaResponse.ok) {
+                    throw new Error('Failed at yunsuan');
+                }
+
+                // Wait for first response
+                const qiguaData = await qiguaResponse.json();
+                console.log('Yunsuan completed:', qiguaData);
+
+                // Second API call - duangua
+                const duanguaResponse = await fetch(`${API_ENDPOINTS.duangua}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        user_id: userId,
+                        session_id: sessionId
+                    })
+                });
+
+                if (!duanguaResponse.ok) {
+                    throw new Error('Failed at tuisuan');
+                }
+
+                const display_story_data = await duanguaResponse.json();
+
+                if (display_story_data.story_id) {
+                    // Create URL with query parameters
+                    const queryParams = new URLSearchParams({
+                        user_id: userId,
+                        session_id: sessionId,
+                        order_id: orderId
+                    });
+                    window.location.href = `${API_ENDPOINTS.display_story}/${display_story_data.story_id}?${queryParams}`;
+                } else {
+                    throw new Error('No story ID received');
+                }
+
+            } catch (error) {
+                console.error('Error generating story:', error);
+                alert('Failed to generate story. Please try again.');
+                window.location.href = `${API_ENDPOINTS.dashboard}/${userId}`;
+            }
+        }
+
+        // Add console log to verify the function is being called
+        console.log('Loading story generation page...');
+
+        // Start the story generation process when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting story generation...');
+            generateStory();
+        });
+    </script>
+</body>
+</html> 

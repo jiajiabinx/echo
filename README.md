@@ -1,0 +1,2 @@
+# IChing
+AI Fortune Teller
