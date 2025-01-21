@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app import models, schemas
+from app import database, schemas
 
 router = APIRouter(
     prefix="/api/payments",
@@ -9,7 +9,7 @@ router = APIRouter(
 @router.post("/confirm")
 async def record_payment(payment: schemas.PaymentRequest)->schemas.CompletedPayment:
     try:
-        completed_payment = models.record_payment(payment.user_id, payment.order_id)
+        completed_payment = database.record_payment(payment.user_id, payment.order_id)
         #return {"message": "Payment recorded successfully"}
         completed_payment = schemas.CompletedPayment(**completed_payment)
         return completed_payment

@@ -57,7 +57,7 @@ class Order(Base):
         CheckConstraint('amount > 0'),
     )
 
-class Session(Base):
+class Sessions(Base):
     __tablename__ = 'sessions'
     
     session_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -133,28 +133,24 @@ class GeneratedStory(Base):
     references = relationship("Referred", back_populates="story")
     identifications = relationship("Identified", back_populates="story")
 
-class TempStory(GeneratedStory):
-    __tablename__ = 'temp_stories'
-    
-    story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
-    generated_story_text = Column(String, nullable=False)
-    
-    # Relationships
-    original_story = relationship("TempStory", back_populates="temp_story")
-    
     __table_args__ = (
         CheckConstraint('length(generated_story_text) > 0'),
     )
     
+class TempStory(GeneratedStory):
+    __tablename__ = 'temp_stories'
+    
+    story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
+    
+    # Relationships
+    original_story = relationship("TempStory", back_populates="temp_story")
+
     __mapper_args__ = {"polymorphic_identity": "user", "polymorphic_load": "inline"}
 
 class DisplayStory(GeneratedStory):
     __tablename__ = 'display_stories'
     
     story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
-    generated_story_text = Column(String, nullable=False)
-    references = Column(String, nullable=False)
-    reference_summary = Column(String, nullable=False)
     
     # Relationships
     original_story = relationship("GeneratedStory", back_populates="display_story")
@@ -175,6 +171,7 @@ class WikiReference(Base):
     wiki_page_id = Column(String, primary_key=True)
     text_corpus = Column(String, nullable=False)
     url = Column(String, nullable=False)
+    
     
     # Relationships
     identifications = relationship("Identified", back_populates="wiki_reference")

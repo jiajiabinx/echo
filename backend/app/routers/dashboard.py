@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
-from app import models, schemas
+from app import database, schemas
 
 
 router = APIRouter(prefix="/api")
@@ -19,5 +19,5 @@ class SessionHistory(BaseModel):
     
 @router.get("/history/{user_id}")
 async def get_story_history(user_id: int) -> List[SessionHistory]:
-    session_history = models.get_user_historical_sessions(user_id)
+    session_history = database.get_user_historical_sessions(user_id)
     return session_history

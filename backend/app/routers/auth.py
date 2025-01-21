@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Dict
-from app import models, schemas
+from app import database, schemas
 from app.routers import users
 from app.dependencies import templates
 
@@ -28,7 +28,7 @@ async def show_login_page(request: Request) :
 async def login(login_form: LoginForm)-> LoginResponse:
     try:
         # Verify user exists
-        user =  models.get_user_by_id(login_form.user_id)
+        user =  database.get_user_by_id(login_form.user_id)
 
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -42,12 +42,11 @@ async def login(login_form: LoginForm)-> LoginResponse:
 
 @router.post("/signup")
 async def signup(sign_up_form: schemas.UserCreate) -> SignupResponse:
-    try:
-        user = await users.create_user(sign_up_form)        
-        return SignupResponse(
-            status="success",
-            user_id=user['user_id'],
-            message="User created successfully"
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    user = database.insert_user(sign_up_form.dict())
+    return SignupResponse(
+        status="success",
+        user_id=user['user_id'],
+        message="User created successfully"
+    )
+

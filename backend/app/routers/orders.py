@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from app import models, schemas
+from app import database, schemas
 
 router = APIRouter(
     prefix="/api/orders",
@@ -17,6 +17,6 @@ class SessionResponse(BaseModel):
 
 @router.post("/")
 async def create_order(order: schemas.OrderCreate) -> OrderResponse:
-    order = models.insert_order(order.amount)
+    order = database.insert_order(order.amount)
     redirect_url = '/confirm'
     return OrderResponse(redirect_url=redirect_url, amount=order['amount'], order_id=order['order_id'])
