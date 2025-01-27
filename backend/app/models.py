@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, CheckConstraint
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, CheckConstraint, ARRAY
 from sqlalchemy.orm import relationship, declarative_base
 
 
@@ -143,7 +143,7 @@ class TempStory(GeneratedStory):
     story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
     
     # Relationships
-    original_story = relationship("TempStory", back_populates="temp_story")
+    generated_story = relationship("GeneratedStory", back_populates="temp_story")
 
     __mapper_args__ = {"polymorphic_identity": "user", "polymorphic_load": "inline"}
 
@@ -151,9 +151,11 @@ class DisplayStory(GeneratedStory):
     __tablename__ = 'display_stories'
     
     story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
+    wiki_pages = Column(ARRAY(String(255)), nullable=False)
+    
     
     # Relationships
-    original_story = relationship("GeneratedStory", back_populates="display_story")
+    generated_story = relationship("GeneratedStory", back_populates="display_story")
     __mapper_args__ = {"polymorphic_identity": "DisplayStory", "polymorphic_load": "inline"}
 
 class Referred(Base):
@@ -166,26 +168,25 @@ class Referred(Base):
     story = relationship("GeneratedStory", back_populates="references")
 
 class WikiReference(Base):
+    #corresponds to the cohere wiki reference index
     __tablename__ = 'wiki_references'
     
-    wiki_page_id = Column(String, primary_key=True)
+    wiki_reference_id = Column(String, primary_key=True)
     text_corpus = Column(String, nullable=False)
     url = Column(String, nullable=False)
+    title = Column(String, nullable=False)
     
     
     # Relationships
     identifications = relationship("Identified", back_populates="wiki_reference")
     
-    __table_args__ = (
-        CheckConstraint("url LIKE 'https://en.wikipedia.org/wiki/%'"),
-    )
 
 class Identified(Base):
     __tablename__ = 'identified'
     
-    wiki_page_id = Column(String, ForeignKey('wiki_references.wiki_page_id'), primary_key=True)
+    wiki_reference_id = Column(String, ForeignKey('wiki_references.wiki_reference_id'), primary_key=True)
     story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
-    
+    similarity = Column(Float, nullable=False)
     # Relationships
     wiki_reference = relationship("WikiReference", back_populates="identifications")
     story = relationship("GeneratedStory", back_populates="identifications")

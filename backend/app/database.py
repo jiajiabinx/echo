@@ -311,15 +311,15 @@ def insert_temp_story(transaction_id, generated_story_text):
             conn.commit()
     return temp_story
 
-def insert_display_story(transaction_id, references, reference_summary, generated_story_text):
+def insert_display_story(transaction_id, generated_story_text, wiki_pages_titles ):
     generated_story_query = """
     INSERT INTO Generated_Stories (transaction_id, generated_story_text)
     VALUES (%s, %s)
     RETURNING *;
     """ 
     display_story_query = """
-    INSERT INTO Display_Stories (story_id, "references", reference_summary)
-    VALUES (%s, %s, %s);
+    INSERT INTO Display_Stories (story_id,wiki_pages)
+    VALUES (%s, %s);
     """
     get_story_query = """
     SELECT * FROM Generated_Stories, Display_Stories
@@ -330,7 +330,7 @@ def insert_display_story(transaction_id, references, reference_summary, generate
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(generated_story_query, (transaction_id, generated_story_text,))
             generated_story = cursor.fetchone()
-            cursor.execute(display_story_query, (generated_story['story_id'], references, reference_summary ))
+            cursor.execute(display_story_query, (generated_story['story_id'], wiki_pages_titles))
             cursor.execute(get_story_query, (generated_story['story_id'],))
             display_story = cursor.fetchone()
             conn.commit()
@@ -350,16 +350,16 @@ def get_display_story(story_id):
     return display_story
 
 
-def record_identified_relationships(story_id, wiki_reference_ids):
+def record_identified_relationships(story_id, wiki_reference_ids,similarity_scores):
     query = """
-    INSERT INTO Identified (story_id, wiki_page_id)
-    VALUES (%s, %s)
+    INSERT INTO Identified (story_id, wiki_reference_id, similarity)
+    VALUES (%s, %s, %s)
     RETURNING *;
     """
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            for r in wiki_reference_ids:
-                cursor.execute(query, (story_id, r))
+            for r,s in zip(wiki_reference_ids,similarity_scores):
+                cursor.execute(query, (story_id, r,s))  
             identified_relationships = cursor.fetchall()
             conn.commit()
     return identified_relationships
@@ -413,7 +413,7 @@ def get_identified_references_by_display_story_id(display_story_id):
     query = """
     WITH SessionInfo AS (
         SELECT Initiated_Transactions.session_id
-        FROM Generated_Stories, API_Calls, Initiated_Transaction
+        FROM Generated_Stories, API_Calls, Initiated_Transactions
         WHERE Generated_Stories.story_id = %s
         AND Generated_Stories.transaction_id = API_Calls.transaction_id
         AND API_Calls.transaction_id = Initiated_Transactions.transaction_id
@@ -423,7 +423,7 @@ def get_identified_references_by_display_story_id(display_story_id):
     WHERE Initiated_Transactions.session_id = (SELECT session_id FROM SessionInfo)
     AND Referred.transaction_id = Initiated_Transactions.transaction_id
     AND Identified.story_id = Referred.story_id
-    AND Wiki_References.wiki_page_id = Identified.wiki_page_id;
+    AND Wiki_References.wiki_reference_id = Identified.wiki_reference_id;
     """
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -438,7 +438,7 @@ def get_identified_references_by_session_id(session_id):
     WHERE Initiated_Transactions.session_id = %s
     AND Referred.transaction_id = Initiated_Transactions.transaction_id
     AND Identified.story_id = Referred.story_id
-    AND Wiki_References.wiki_page_id = Identified.wiki_page_id;
+    AND Wiki_References.wiki_reference_id = Identified.wiki_reference_id;
     """
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -471,6 +471,20 @@ def get_random_wiki_references(n):
             cursor.execute(query, (n,))
             wiki_references = cursor.fetchall()
     return wiki_references
+
+def insert_wiki_reference(wiki_reference_id, text_corpus, url, title):
+    query = """
+    INSERT INTO wiki_references (wiki_reference_id, text_corpus, url, title)
+    VALUES (%s, %s, %s, %s)
+    ON CONFLICT (wiki_reference_id) DO NOTHING
+    RETURNING *;
+    """
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, (wiki_reference_id, text_corpus, url, title))
+            wiki_reference = cursor.fetchone()
+            conn.commit()
+    return wiki_reference
 
 
 if __name__ == "__main__":

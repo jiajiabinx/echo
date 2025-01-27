@@ -130,7 +130,7 @@
         <div class="wiki-references">
             {% for reference in wiki_references %}
             <div class="wiki-card">
-                <h3>{{ reference.wiki_page_id.replace('_', ' ') }}</h3>
+                <h3>{{ reference.title.replace('_', ' ') }}</h3>
                 <p>{{ reference.text_corpus }}</p>
                 <a href="{{ reference.url }}" target="_blank">Read more on Wikipedia</a>
             </div>

@@ -117,8 +117,7 @@ class TempStory(GeneratedStory):
         return v
 
 class DisplayStory(GeneratedStory):
-    references: str
-    reference_summary: str
+    wiki_pages: List[str]
 
 
 
@@ -129,19 +128,20 @@ class Referred(IChingBaseModel):
 
 
 class WikiReference(IChingBaseModel):
-    wiki_page_id: str
+    wiki_reference_id: str
     text_corpus: str
     url: str
+    title: str
     
     @field_validator('url')
     @classmethod
     def validate_url(cls, v):
-        if not v.startswith('https://en.wikipedia.org/wiki/'):
-            raise ValueError('URL must start with https://en.wikipedia.org/wiki/')
+        if not v.startswith('https://en.wikipedia.org/wiki'):
+            raise ValueError('URL must start with https://en.wikipedia.org/wiki')
         return v
     
 class Identified(IChingBaseModel):
-    wiki_page_id: str
+    wiki_reference_id: str
     story_id: int
     
     

@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
 from app.routers import users, friends, orders, payments, dashboard, auth, story
+from app import database
 from pydantic import BaseModel
 from app import schemas,models
 from typing import List
@@ -39,10 +40,10 @@ async def get_story_loading_page(
 @app.get("/story/{story_id}")
 async def get_story(request: Request,story_id:int):
     
-    display_story = models.get_display_story(story_id)
-    temp_story = models.get_temp_story(story_id)
+    display_story = database.get_display_story(story_id)
+    temp_story = database.get_temp_story(story_id)
     user_id = request.query_params.get("user_id")
-    wiki_references = models.get_identified_references_by_display_story_id(story_id)
+    wiki_references = database.get_identified_references_by_display_story_id(story_id)
     wiki_references = [schemas.WikiReference(**r).model_dump(mode="json") for r in wiki_references]
     return templates.TemplateResponse(
             "story.html",
