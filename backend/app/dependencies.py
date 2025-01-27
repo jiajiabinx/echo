@@ -1,14 +1,11 @@
 
 from fastapi.templating import Jinja2Templates
-from transformers import AutoTokenizer, AutoModel
-import torch
 import cohere
 import os
 import dotenv
 import json
 from pinecone.grpc import PineconeGRPC as pinecone
 from openai import OpenAI
-import requests
 import wikipediaapi
 import logging
 import absl.logging

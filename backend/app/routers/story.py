@@ -1,10 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from typing import Dict, List
 from app import database, schemas
 import json
 import os
 import uuid
-import anthropic
 from app import dependencies
 
 

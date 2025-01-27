@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
-from app import database, schemas
+from app import database
 
 
 router = APIRouter(prefix="/api")

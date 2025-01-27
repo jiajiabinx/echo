@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app import models, schemas,database
+from app import schemas,database
 from typing import List
 
 router = APIRouter(
