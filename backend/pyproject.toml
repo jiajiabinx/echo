@@ -9,7 +9,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 fastapi = "^0.115.5"
-torch = "^2.5.1"
 numpy = ">=1.26.0,<2.1.0"
 tensorflow = "^2.18.0"
 sentence-transformers = "^3.3.0"

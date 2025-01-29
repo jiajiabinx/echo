@@ -85,7 +85,6 @@ def get_similar_stories(story_text, n):
         all_matches.extend(response.matches)
     return all_matches
 
-
 def break_down_story(story_text):
     paragraphs = story_text.split("\n")
     return paragraphs
