@@ -3,11 +3,6 @@
 ## Overview
 What if we chronologically arrange textual narratives and train a model that can best predict the direction of its semantic narrative? Aka - can we make a model to predict future events?
 
-## Features
-- Feature 1
-- Feature 2
-- etc.
-
 ## Technical Architecture
 - Backend: FastAPI, PostgreSQL, SQLAlchemy
 - AI Integration: Cohere multilingual-22-12, DeepSeek R1
