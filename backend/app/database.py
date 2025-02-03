@@ -488,6 +488,4 @@ def insert_wiki_reference(wiki_reference_id, text_corpus, url, title):
 
 
 if __name__ == "__main__":
-    import sys
-    print(sys.path)
     init_db()
