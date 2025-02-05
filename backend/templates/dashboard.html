@@ -401,7 +401,7 @@
 
                 try {
                     const response = await fetch(`${API_ENDPOINTS.user}/${userId}`, {
-                        method: 'PUT', // Ensure we use PUT since we updated the endpoint
+                        method: 'POST', // Ensure we use PUT since we updated the endpoint
                         headers: {
                             'Content-Type': 'application/json',
                         },
