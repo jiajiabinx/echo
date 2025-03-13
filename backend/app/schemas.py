@@ -42,6 +42,21 @@ class Users(IChingBaseModel):
             raise ValueError('Birth date cannot be in the future')
         return v
 
+class Entity(IChingBaseModel):
+    entity_id: int
+    entity_name: str
+    entity_type: str
+    entity_description: str
+
+class Event(IChingBaseModel):
+    user_id: int
+    story_id: int
+    event_id: int
+    event_type: str
+    event_date: date | None = None
+    text: str
+    annotated_text: str
+    entities: List[Entity] | None = None
 
 class Friend(IChingBaseModel):
     user_id_left: int

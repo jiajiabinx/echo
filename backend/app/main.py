@@ -2,11 +2,9 @@ from fastapi import FastAPI, Request, Path, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
-from app.routers import users, friends, orders, payments, dashboard, auth, story
+from app.routers import users, friends, orders, payments, dashboard, auth, story, event
 from app import database
-from pydantic import BaseModel
-from app import schemas,models
-from typing import List
+from app import schemas
 
 app = FastAPI()
 
@@ -40,16 +38,15 @@ async def get_story_loading_page(
 @app.get("/story/{story_id}")
 async def get_story(request: Request,story_id:int):
     
-    display_story = database.get_display_story(story_id)
-    temp_story = database.get_temp_story(story_id)
+    future_story = database.get_future_story(story_id)
     user_id = request.query_params.get("user_id")
-    wiki_references = database.get_identified_references_by_display_story_id(story_id)
+    wiki_references = database.get_identified_references_by_future_story_id(story_id)
     wiki_references = [schemas.WikiReference(**r).model_dump(mode="json") for r in wiki_references]
     return templates.TemplateResponse(
             "story.html",
             {
                 "request": request,
-                "generated_story": display_story["generated_story_text"],
+                "generated_story": future_story["generated_story_text"],
                 "wiki_references": wiki_references,
                 "user_id": user_id,
                 "base_url": base_url
@@ -76,6 +73,7 @@ app.include_router(payments.router)
 app.include_router(dashboard.router)
 app.include_router(auth.router)
 app.include_router(story.router)
+app.include_router(event.router)
 
 
 if __name__ == "__main__":

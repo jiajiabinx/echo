@@ -6,16 +6,19 @@ import dotenv
 import json
 from pinecone.grpc import PineconeGRPC as pinecone
 from openai import OpenAI
+from openai import BadRequestError
 import wikipediaapi
 import logging
 import absl.logging
+import spacy
+from sklearn.manifold import TSNE
 
-
-# Suppress gRPC and absl logging warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TF logging
 logging.getLogger('absl').setLevel(logging.ERROR)  # Suppress absl logging
 absl.logging.set_verbosity(absl.logging.ERROR)  # Suppress absl logging
 logging.root.removeHandler(absl.logging._absl_handler)  # Remove absl handler
+nlp = spacy.load("en_core_web_sm")
+tsne = TSNE(n_components=3, random_state=42, perplexity=3) #n_components is the number of dimensions to reduce to
 
 
 dotenv.load_dotenv()
@@ -25,7 +28,10 @@ wiki = wikipediaapi.Wikipedia(user_agent="echo-project-1",language='en')
 pc = pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index(host=os.getenv("PINECONE_INDEX_HOST"))
 templates = Jinja2Templates(directory="templates")
-open_ai_client = OpenAI(api_key=os.getenv("DEEPSEEK_API_KEY"),base_url="https://api.deepseek.com")
+deepseek_ai_client = OpenAI(api_key=os.getenv("DEEPSEEK_API_KEY"),base_url="https://api.deepseek.com")
+open_ai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
 
 def generate_temp_story(user_str):
     json_str = user_str.replace('""', '"')
@@ -46,7 +52,7 @@ def generate_temp_story(user_str):
     {"role": "user", "content": "Break the article into paragraphs with a maximum of 250 words per paragraph."},
     {"role": "user", "content": "With parental income, do not include the numerical income in the article. Just mention the income level."}
     ]
-    response = open_ai_client.chat.completions.create(
+    response = deepseek_ai_client.chat.completions.create(
         model="deepseek-chat",
         messages=messages,
         stream=False
@@ -75,6 +81,21 @@ def clean_story_text(story_text):
     
     # Rejoin paragraphs with double newlines
     return '\n\n'.join(clean_paragraphs)
+
+def deepseek_check(content):
+    try:
+        response = open_ai_client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[{"role": "user", "content": "Check if the following content contains any sensitive information: " + content}],
+            stream=False
+        )
+    except BadRequestError as e:
+        if e.code == 400 and "Content Exists Risk" in str(e):
+            return True
+        else:
+            raise e
+    return False
+
 
 def get_similar_stories(story_text, n):
     paragraphs = break_down_story(story_text)
@@ -124,14 +145,17 @@ def process_wiki_references(wiki_references):
     wiki_references_full_text = ""
     wiki_references_titles = []
 
-    
     for wiki_reference in wiki_references:
         if wiki_reference.title not in seen:
             seen.add(wiki_reference.title)
             full_text = get_full_wiki_page(wiki_reference.title)
             wiki_references_full_text += "\n" + full_text
             wiki_references_titles.append(wiki_reference.title)
+            
+            
+            
     return wiki_references_full_text, wiki_references_titles
+
 
 
 if __name__ == "__main__":

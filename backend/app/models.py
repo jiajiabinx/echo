@@ -1,9 +1,11 @@
 
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, CheckConstraint, ARRAY
+from sqlalchemy import Table, Column, Integer, String, Float, Date, DateTime, ForeignKey, CheckConstraint, ARRAY
 from sqlalchemy.orm import relationship, declarative_base
 
 
 Base = declarative_base()
+    
+
 
 class Users(Base):
     __tablename__ = 'users'
@@ -33,6 +35,43 @@ class Users(Base):
         ),
         CheckConstraint("birth_date <= CURRENT_DATE"),
     )
+    
+event_entity_association = Table(
+    'event_entity_association', Base.metadata,
+    Column('event_id', Integer, ForeignKey('events.event_id'), primary_key=True),
+    Column('entity_id', Integer, ForeignKey('entities.entity_id'), primary_key=True)
+)
+
+
+class Entity(Base):
+    __tablename__ = 'entities'
+    
+    entity_id = Column(Integer, primary_key=True, autoincrement=True)
+    entity_name = Column(String, nullable=False)
+    entity_type = Column(String, nullable=False)
+    entity_description = Column(String)
+    
+    events = relationship("Event", secondary='event_entity_association', back_populates="entities")
+
+class Event(Base):
+    __tablename__ = 'events'
+    
+    event_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'))
+    story_id = Column(Integer, ForeignKey('generated_stories.story_id'))
+    
+    text = Column(String, nullable=False)
+    annotated_text = Column(String, nullable=False)
+    event_type = Column(String, nullable=False)
+    event_date = Column(Date)
+    
+    # Relationships
+    user = relationship("Users")
+    story = relationship("GeneratedStory", back_populates="events")
+    entities = relationship("Entity", secondary='event_entity_association', back_populates="events")
+
+
+
 
 class Friend(Base):
     __tablename__ = 'friends'
@@ -62,15 +101,24 @@ class Sessions(Base):
     
     session_id = Column(Integer, primary_key=True, autoincrement=True)
     timestamp = Column(DateTime, nullable=False)
+
     
     # Relationships
     payments = relationship("CompletedPayment", back_populates="session")
-    transactions = relationship("InitiatedTransaction", back_populates="session")
+    transactions = relationship("InitiatedTransaction", back_populates="session",uselist=True)
     
     __table_args__ = (
         CheckConstraint('timestamp <= CURRENT_TIMESTAMP'),
     )
-
+    
+    def is_complete(self):
+        # Check if there are any transactions with a generated story
+        past_stories_count = sum(1 for t in self.transactions if t.generated_story and isinstance(t, PastStory))
+        future_stories_count = sum(1 for t in self.transactions if t.generated_story and isinstance(t, FutureStory))
+        lack = "past_story" if past_stories_count<1 else "future_story" if future_stories_count<1 else None
+        return lack
+    
+    
 class CompletedPayment(Base):
     __tablename__ = 'completed_payments'
     
@@ -81,19 +129,26 @@ class CompletedPayment(Base):
     # Relationships
     user = relationship("Users", back_populates="payments")
     order = relationship("Order", back_populates="payments")
-    session = relationship("Session", back_populates="payments")
+    session = relationship("Sessions", back_populates="payments")
 
 class InitiatedTransaction(Base):
     __tablename__ = 'initiated_transactions'
     
     transaction_id = Column(String, primary_key=True)
     session_id = Column(Integer, ForeignKey('sessions.session_id'), nullable=False)
+    type = Column(String)
     
     # Relationships
-    session = relationship("Session", back_populates="transactions")
-    api_call = relationship("APICall", back_populates="transaction", uselist=False)
-    sbert_call = relationship("SBERTCall", back_populates="transaction", uselist=False)
-    generated_story = relationship("GeneratedStory", back_populates="transaction", uselist=False)
+    session = relationship("Sessions", back_populates="transactions")
+    api_call = relationship("APICall", back_populates="transaction", uselist=False, cascade="all, delete-orphan")
+    sbert_call = relationship("SBERTCall", back_populates="transaction", uselist=False, cascade="all, delete-orphan")
+    generated_story = relationship("GeneratedStory", back_populates="transaction", uselist=False, cascade="all, delete-orphan")
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'initiated_transaction',
+        'polymorphic_on': type
+    }
+
 
 class APICall(InitiatedTransaction):
     __tablename__ = 'api_calls'
@@ -103,7 +158,7 @@ class APICall(InitiatedTransaction):
     
     # Relationships
     transaction = relationship("InitiatedTransaction", back_populates="api_call")
-    __mapper_args__ = {"polymorphic_identity": "APICall", "polymorphic_load": "inline"}
+    __mapper_args__ = {"polymorphic_identity": "api_call"}
 
 class SBERTCall(InitiatedTransaction):
     __tablename__ = 'sbert_calls'
@@ -117,7 +172,7 @@ class SBERTCall(InitiatedTransaction):
     __table_args__ = (
         CheckConstraint('length(corpus) > 0'),
     )
-    __mapper_args__ = {"polymorphic_identity": "SBERTCall", "polymorphic_load": "inline"}
+    __mapper_args__ = {"polymorphic_identity": "sbert_call"}
 
 class GeneratedStory(Base):
     __tablename__ = 'generated_stories'
@@ -125,47 +180,44 @@ class GeneratedStory(Base):
     story_id = Column(Integer, primary_key=True, autoincrement=True)
     transaction_id = Column(String, ForeignKey('initiated_transactions.transaction_id'), nullable=False)
     generated_story_text = Column(String, nullable=False)
+    type = Column(String)
     
     # Relationships
     transaction = relationship("InitiatedTransaction", back_populates="generated_story")
-    temp_story = relationship("TempStory", back_populates="original_story", uselist=False)
-    display_story = relationship("DisplayStory", back_populates="original_story", uselist=False)
-    references = relationship("Referred", back_populates="story")
-    identifications = relationship("Identified", back_populates="story")
-
+    past_story = relationship("PastStory", back_populates="generated_story", uselist=False, cascade="all, delete-orphan")
+    future_story = relationship("FutureStory", back_populates="generated_story", uselist=False, cascade="all, delete-orphan")
+    identifications = relationship("Identified", back_populates="story", cascade="all, delete-orphan")
+    events = relationship("Event", back_populates="story", uselist=True, cascade="all, delete-orphan")
+    
     __table_args__ = (
         CheckConstraint('length(generated_story_text) > 0'),
     )
     
-class TempStory(GeneratedStory):
-    __tablename__ = 'temp_stories'
+    __mapper_args__ = {
+        'polymorphic_identity': 'generated_story',
+        'polymorphic_on': type
+    }
+    
+class PastStory(GeneratedStory):
+    __tablename__ = 'past_stories'
     
     story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
     
     # Relationships
-    generated_story = relationship("GeneratedStory", back_populates="temp_story")
+    generated_story = relationship("GeneratedStory", back_populates="past_story", cascade="all, delete")
 
-    __mapper_args__ = {"polymorphic_identity": "user", "polymorphic_load": "inline"}
+    __mapper_args__ = {"polymorphic_identity": "past_story"}
 
-class DisplayStory(GeneratedStory):
-    __tablename__ = 'display_stories'
+class FutureStory(GeneratedStory):
+    __tablename__ = 'future_stories'
     
     story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
     wiki_pages = Column(ARRAY(String(255)), nullable=False)
     
     
     # Relationships
-    generated_story = relationship("GeneratedStory", back_populates="display_story")
-    __mapper_args__ = {"polymorphic_identity": "DisplayStory", "polymorphic_load": "inline"}
-
-class Referred(Base):
-    __tablename__ = 'referred'
-    
-    story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
-    transaction_id = Column(String, ForeignKey('initiated_transactions.transaction_id'), primary_key=True)
-    
-    # Relationships
-    story = relationship("GeneratedStory", back_populates="references")
+    generated_story = relationship("GeneratedStory", back_populates="future_story", cascade="all, delete")
+    __mapper_args__ = {"polymorphic_identity": "future_story"}
 
 class WikiReference(Base):
     #corresponds to the cohere wiki reference index
@@ -180,7 +232,6 @@ class WikiReference(Base):
     # Relationships
     identifications = relationship("Identified", back_populates="wiki_reference")
     
-
 class Identified(Base):
     __tablename__ = 'identified'
     
@@ -190,4 +241,3 @@ class Identified(Base):
     # Relationships
     wiki_reference = relationship("WikiReference", back_populates="identifications")
     story = relationship("GeneratedStory", back_populates="identifications")
-    

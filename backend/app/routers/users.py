@@ -8,6 +8,7 @@ router = APIRouter(
 )
 
 
+
 @router.get("/{user_id}", response_model=schemas.Users)
 async def get_user(user_id: int) -> schemas.Users:
     try:

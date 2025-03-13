@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.13"
 uvicorn = "^0.34.0"
 fastapi = "^0.115.8"
 python-dotenv = "^1.0.1"
@@ -25,7 +25,18 @@ grpcio-tools = "^1.70.0"
 protoc-gen-openapiv2 = "^0.0.1"
 wikipedia-api = "^0.8.1"
 absl-py = "^2.1.0"
+datasets = "^3.2.0"
+torch = "^2.6.0"
+transformers = "^4.49.0"
+spacy = "^3.8.4"
+spacy-llm = "^0.7.3"
+matplotlib = "^3.10.1"
+scikit-learn = "^1.6.1"
+seaborn = "^0.13.2"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
