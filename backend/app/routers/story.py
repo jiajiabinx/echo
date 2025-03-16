@@ -10,6 +10,12 @@ router = APIRouter(
     tags=["story"]
 )
 
+@router.post("/test")
+async def test(completed_payment: schemas.CompletedPayment):
+    check = database.check_payment(completed_payment.user_id, completed_payment.session_id, completed_payment.order_id)
+    return check
+    
+
 
 @router.get("/story")
 async def get_stories(story_id: int | None = None, user_id: int | None = None) -> list[schemas.GeneratedStory]:

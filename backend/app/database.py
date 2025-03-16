@@ -315,8 +315,8 @@ def record_sbert_call(transaction_id, session_id, corpus):
 
 def insert_past_story(transaction_id, generated_story_text):
     generated_story_query = """
-    INSERT INTO Generated_Stories (transaction_id, generated_story_text)
-    VALUES (%s, %s)
+    INSERT INTO Generated_Stories (transaction_id, generated_story_text, type)
+    VALUES (%s, %s, 'past_story')
     RETURNING *;
     """
     past_story_query = """
@@ -335,8 +335,8 @@ def insert_past_story(transaction_id, generated_story_text):
 
 def insert_future_story(transaction_id, generated_story_text, wiki_pages_titles ):
     generated_story_query = """
-    INSERT INTO Generated_Stories (transaction_id, generated_story_text)
-    VALUES (%s, %s)
+    INSERT INTO Generated_Stories (transaction_id, generated_story_text, type)
+    VALUES (%s, %s, 'future_story')
     RETURNING *;
     """ 
     future_story_query = """

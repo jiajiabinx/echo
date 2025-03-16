@@ -113,8 +113,8 @@ class Sessions(Base):
     
     def is_complete(self):
         # Check if there are any transactions with a generated story
-        past_stories_count = sum(1 for t in self.transactions if t.generated_story and isinstance(t, PastStory))
-        future_stories_count = sum(1 for t in self.transactions if t.generated_story and isinstance(t, FutureStory))
+        past_stories_count = sum(1 for t in self.transactions if t.generated_story and isinstance(t.generated_story, PastStory))
+        future_stories_count = sum(1 for t in self.transactions if t.generated_story and isinstance(t.generated_story, FutureStory))
         lack = "past_story" if past_stories_count<1 else "future_story" if future_stories_count<1 else None
         return lack
     
@@ -213,7 +213,6 @@ class FutureStory(GeneratedStory):
     
     story_id = Column(Integer, ForeignKey('generated_stories.story_id'), primary_key=True)
     wiki_pages = Column(ARRAY(String(255)), nullable=False)
-    
     
     # Relationships
     generated_story = relationship("GeneratedStory", back_populates="future_story", cascade="all, delete")

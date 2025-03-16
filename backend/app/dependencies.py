@@ -33,7 +33,7 @@ open_ai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 
-def generate_temp_story(user_str):
+def generate_past_story(user_str):
     json_str = user_str.replace('""', '"')
     user = json.loads(json_str)    
     fields_to_include = [

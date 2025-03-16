@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from app import database, schemas
 from pydantic import BaseModel
 from app.dependencies import nlp, get_embeddings, tsne
@@ -38,6 +38,8 @@ class ProcessedEvent(BaseModel):
 class EventVisual(ProcessedEvent):
     event_id: int    
     coordinates: List[float] #x,y,z coordinates
+    event_type: str
+    future_ind: bool
 
 
 
@@ -81,7 +83,7 @@ async def create_event(events: List[ProcessedEvent]) -> List[schemas.Event]:
     return created_events
 
 @router.get("/event")
-async def get_events(user_id: int, story_ids: List[int]) -> List[EventVisual]:
+async def get_events(user_id: int, story_ids: List[int] = Query(...,description = 'List of story ids')) -> List[EventVisual]:
     assert len(story_ids) > 0, "story_ids must be provided"
     
     events = database.get_events_by_story_ids(story_ids)
