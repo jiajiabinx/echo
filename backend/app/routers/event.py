@@ -100,6 +100,7 @@ async def get_events(user_id: int, story_ids: List[int] = Query(...,description 
             user_id=event.user_id,
             story_id=event.story_id,
             text=event.text,
+            future_ind=True,
             annotated_text=event.annotated_text,
             event_type=event.event_type,
             event_date=event.event_date,
