@@ -25,6 +25,7 @@ async def get_dashboard(request: Request, user_id: int):
             }
         )
     
+    
 @app.get("/story")   
 async def get_story_loading_page(
     request: Request
@@ -47,7 +48,7 @@ async def get_story(request: Request,story_id:int):
             {
                 "request": request,
                 "generated_story": future_story["generated_story_text"],
-                "wiki_references": wiki_references,
+                "wiki_references": wiki_references[:5],
                 "user_id": user_id,
                 "base_url": base_url
             }

@@ -264,12 +264,12 @@ def record_payment(user_id, order_id):
 def get_user_historical_sessions(user_id):
     query = """
     SELECT * 
-    FROM Users, Completed_Payments, Sessions, Initiated_Transactions, Generated_Stories, Display_Stories
+    FROM Users, Completed_Payments, Sessions, Initiated_Transactions, Generated_Stories, Future_Stories
     WHERE Users.user_id = %s
     AND Completed_Payments.user_id = Users.user_id 
     AND Completed_Payments.session_id = Sessions.session_id
     AND Initiated_Transactions.session_id = Completed_Payments.session_id
-    AND Generated_Stories.story_id = Display_Stories.story_id
+    AND Generated_Stories.story_id = Future_Stories.story_id
     AND Generated_Stories.transaction_id = Initiated_Transactions.transaction_id;
     """
     with get_db_connection() as conn:
@@ -372,12 +372,28 @@ def get_all_stories_by_user_id(user_id):
             stories = cursor.fetchall()
     return stories
 
+def get_future_stories_by_user_id(user_id):
+    query = """
+    SELECT * 
+    FROM Future_Stories, Generated_Stories, Initiated_Transactions, Completed_Payments
+    WHERE Future_Stories.story_id = Generated_Stories.story_id
+    AND Generated_Stories.transaction_id = Initiated_Transactions.transaction_id
+    AND Initiated_Transactions.session_id = Completed_Payments.session_id
+    AND Completed_Payments.user_id = %s;
+    """
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, (user_id,))
+            future_stories = cursor.fetchall()
+    return future_stories
+
+
 def get_future_story(story_id):
     query = """
     SELECT * 
-    FROM Display_Stories, Generated_Stories
-    WHERE Display_Stories.story_id = Generated_Stories.story_id
-    AND Display_Stories.story_id = %s;
+    FROM Future_Stories, Generated_Stories
+    WHERE Future_Stories.story_id = Generated_Stories.story_id
+    AND Future_Stories.story_id = %s;
     """
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -464,11 +480,21 @@ def get_future_story_by_session_id(session_id):
 
 def get_identified_references_by_future_story_id(future_story_id):
     query = """
-    SELECT *
-    FROM  Generated_Stories, Identified, Wiki_References
-    WHERE Identified.story_id = Generated_Stories.story_id
-    AND Wiki_References.wiki_reference_id = Identified.wiki_reference_id
-    AND Generated_Stories.story_id = %s;
+    With session_id as (
+        Select Initiated_Transactions.session_id
+        From Future_Stories, Generated_Stories, Initiated_Transactions, Completed_Payments
+        Where Future_Stories.story_id = Generated_Stories.story_id
+        And Generated_Stories.transaction_id = Initiated_Transactions.transaction_id
+        And Initiated_Transactions.session_id = Completed_Payments.session_id
+        And Future_Stories.story_id = %s
+    )
+    Select *
+    From Initiated_Transactions, Past_Stories, Generated_Stories, Identified, Wiki_References
+    Where Initiated_Transactions.transaction_id = Generated_Stories.transaction_id
+    And Past_Stories.story_id = Generated_Stories.story_id
+    And Initiated_Transactions.session_id = session_id
+    And Identified.story_id = Past_Stories.story_id
+    And Identified.wiki_reference_id = Wiki_References.wiki_reference_id
     """
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:

@@ -228,7 +228,7 @@
 
         async function fetchStoryHistory() {
             try {
-                const response = await fetch(`${API_ENDPOINTS.storyHistory}/${userId}`);
+                const response = await fetch(`${API_ENDPOINTS.storyHistory}/?user_id=${userId}`);
                 if (!response.ok) throw new Error('Failed to fetch story history');
                 const data = await response.json();
                 displayStoryHistory(data);
