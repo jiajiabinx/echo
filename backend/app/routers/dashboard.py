@@ -17,7 +17,7 @@ class SessionHistory(BaseModel):
     transaction_id: str
     timestamp: datetime
     
-@router.get("/history/{user_id}")
+@router.get("/history")
 async def get_story_history(user_id: int) -> List[SessionHistory]:
     session_history = database.get_user_historical_sessions(user_id)
     return session_history

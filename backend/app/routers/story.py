@@ -17,11 +17,11 @@ async def test(completed_payment: schemas.CompletedPayment):
     
 
 
-@router.get("/history")
-async def get_future_stories(user_id: int ) -> list[schemas.GeneratedStory]:
-    stories = database.get_future_stories_by_user_id(user_id)
-    stories = [schemas.GeneratedStory(**story) for story in stories]
-    return stories
+# @router.get("/history")
+# async def get_future_stories(user_id: int ) -> list[schemas.GeneratedStory]:
+#     stories = database.get_future_stories_by_user_id(user_id)
+#     stories = [schemas.GeneratedStory(**story) for story in stories]
+#     return stories
     
 
 
