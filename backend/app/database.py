@@ -361,9 +361,10 @@ def insert_future_story(transaction_id, generated_story_text, wiki_pages_titles 
 def get_all_stories_by_user_id(user_id):
     query = """
     SELECT * 
-    FROM Generated_Stories, Initiated_Transactions, Completed_Payments
+    FROM Generated_Stories, Initiated_Transactions, Completed_Payments, Sessions
     WHERE Initiated_Transactions.transaction_id = Generated_Stories.transaction_id
     AND Completed_Payments.session_id = Initiated_Transactions.session_id
+    AND Sessions.session_id = Completed_Payments.session_id
     AND Completed_Payments.user_id = %s;
     """
     with get_db_connection() as conn:
@@ -453,8 +454,10 @@ def get_past_story_by_session_id(session_id):
 
 def get_story_by_story_id(story_id):
     query = """
-    SELECT * FROM  Generated_Stories
-    WHERE Generated_Stories.story_id = %s;
+    SELECT * FROM  Generated_Stories, Initiated_Transactions, Sessions
+    WHERE Generated_Stories.story_id = %s
+    AND Generated_Stories.transaction_id = Initiated_Transactions.transaction_id
+    AND Initiated_Transactions.session_id = Sessions.session_id;
     """ 
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:

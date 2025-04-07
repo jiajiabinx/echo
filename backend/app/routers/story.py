@@ -3,12 +3,19 @@ from app import database, schemas, models
 import json
 import uuid
 from app import dependencies
-
-
+from pydantic import BaseModel
+from datetime import datetime
 router = APIRouter(
     prefix="/api",
     tags=["story"]
 )
+
+class Story(BaseModel):
+    transaction_id: str
+    story_id: int
+    generated_story_text: str
+    timestamp: datetime
+
 
 @router.post("/test")
 async def test(completed_payment: schemas.CompletedPayment):
@@ -17,16 +24,9 @@ async def test(completed_payment: schemas.CompletedPayment):
     
 
 
-# @router.get("/history")
-# async def get_future_stories(user_id: int ) -> list[schemas.GeneratedStory]:
-#     stories = database.get_future_stories_by_user_id(user_id)
-#     stories = [schemas.GeneratedStory(**story) for story in stories]
-#     return stories
-    
-
 
 @router.get("/story")
-async def get_stories(story_id: int | None = None, user_id: int | None = None) -> list[schemas.GeneratedStory]:
+async def get_stories(story_id: int | None = None, user_id: int | None = None) -> list[Story]:
     assert story_id or user_id, "Either story_id or user_id must be provided"
     if story_id:
         story = database.get_story_by_story_id(story_id)
