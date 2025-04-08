@@ -38,8 +38,8 @@ def generate_past_story(user_str):
     user = json.loads(json_str)    
     fields_to_include = [
     "display_name",'birth_date', 'birth_location', 'primary_residence', 'current_location',
-    'college', 'educational_level', 'parental_income', 'primary_interest',
-    'profession', 'religion', 'race'
+    'college', 'educational_level', 'primary_interest',
+    'profession',
     ]
 
     clean_str = ", ".join(f"{field.replace('_', ' ')}: {user[field]}" 
@@ -52,8 +52,8 @@ def generate_past_story(user_str):
     {"role": "user", "content": "Break the article into paragraphs with a maximum of 250 words per paragraph."},
     {"role": "user", "content": "With parental income, do not include the numerical income in the article. Just mention the income level."}
     ]
-    response = deepseek_ai_client.chat.completions.create(
-        model="deepseek-chat",
+    response = open_ai_client.chat.completions.create(
+        model="gpt-4o-mini",
         messages=messages,
         stream=False
     )

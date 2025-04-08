@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Path, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from app.routers import users, friends, orders, payments, dashboard, auth, story, event
 from app import database
@@ -76,6 +77,20 @@ app.include_router(auth.router)
 app.include_router(story.router)
 app.include_router(event.router)
 
-
+app.add_middleware(
+    CORSMiddleware,
+    # List the allowed origins (can use ["*"] to allow all)
+    allow_origins=["http://localhost:3000"],
+    # Specify allowed HTTP methods
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    # List allowed headers
+    allow_headers=["Content-Type", "Authorization", "Accept"],
+    # Allow cookies to be included in requests
+    allow_credentials=True,
+    # Headers that browsers are allowed to access
+    expose_headers=["Content-Disposition"],
+    # Cache preflight requests (in seconds)
+    max_age=600,
+)
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8111)
