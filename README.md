@@ -4,7 +4,7 @@
 What if we chronologically arrange textual narratives and train a model that can best predict the direction of its semantic narrative? Aka - can we make a model to predict future events?
 
 ## Video & Prototype
-[![Watch the demo video](thumbnail.png)](https://www.loom.com/embed/adaaaf3ed7914ae690c54d4213e0909f?sid=5d0b8337-03c0-4437-831c-1be7300f4e2c)
+[![Watch the demo video]](https://www.loom.com/embed/adaaaf3ed7914ae690c54d4213e0909f?sid=5d0b8337-03c0-4437-831c-1be7300f4e2c)
 
 
 ## Technical Architecture
